@@ -132,7 +132,7 @@ mod tests {
             for _ in 0..1000 {
                 let s = osc.next_sample();
                 assert!(!s.is_nan(), "Sample must not be NaN for {wf:?}");
-                assert!(s >= -1.05 && s <= 1.05, "Sample out of bounds: {s}");
+                assert!((-1.05..=1.05).contains(&s), "Sample out of bounds: {s}");
             }
         }
     }
