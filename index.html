@@ -53,8 +53,28 @@
           <input type="range" id="param-drive" min="0.5" max="3.0" step="0.1" value="1.8">
         </div>
       </div>
+      <div class="rack-module">
+        <h2 class="module-title">ADSR Envelope</h2>
+        <div class="param-row">
+          <div class="param-header"><label for="param-attack">Attack (s)</label><span id="val-attack">0.005</span></div>
+          <input type="range" id="param-attack" min="0.001" max="1.5" step="0.005" value="0.005">
+        </div>
+        <div class="param-row">
+          <div class="param-header"><label for="param-decay">Decay (s)</label><span id="val-decay">0.15</span></div>
+          <input type="range" id="param-decay" min="0.01" max="2.0" step="0.01" value="0.15">
+        </div>
+        <div class="param-row">
+          <div class="param-header"><label for="param-sustain">Sustain</label><span id="val-sustain">0.4</span></div>
+          <input type="range" id="param-sustain" min="0.0" max="1.0" step="0.02" value="0.4">
+        </div>
+        <div class="param-row">
+          <div class="param-header"><label for="param-release">Release (s)</label><span id="val-release">0.1</span></div>
+          <input type="range" id="param-release" min="0.01" max="3.0" step="0.02" value="0.1">
+        </div>
+      </div>
     </section>
   </main>
+
 
 
 </body>
