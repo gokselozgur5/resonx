@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main, feat/*]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Test & Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+          components: rustfmt, clippy
+
+      - name: Check code formatting
+        run: cargo fmt --all -- --check
+
+      - name: Clippy linter
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: Run test suite
+        run: cargo test --workspace --locked
+
+      - name: Verify no_std wasm32 compilation
+        run: cargo check -p resonx-dsp --no-default-features --target wasm32-unknown-unknown
+
+      - name: Verify documentation
+        run: RUSTDOCFLAGS="-D warnings" cargo doc --workspace --no-deps
