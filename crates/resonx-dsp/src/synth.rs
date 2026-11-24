@@ -86,7 +86,8 @@ impl SynthVoice {
 pub struct PolySynth {
     pub voices: [SynthVoice; MAX_VOICES],
     pub delay: StereoPingPongDelay,
-    pub reverb: SchroederReverb,
+    pub reverb_l: SchroederReverb,
+    pub reverb_r: SchroederReverb,
     pub master_gain: f32,
 }
 
@@ -105,7 +106,8 @@ impl PolySynth {
                 SynthVoice::new(sr),
             ],
             delay: StereoPingPongDelay::new(sr),
-            reverb: SchroederReverb::new(),
+            reverb_l: SchroederReverb::new(),
+            reverb_r: SchroederReverb::new(),
             master_gain: 0.8,
         }
     }
@@ -145,8 +147,8 @@ impl PolySynth {
             }
             let scaled = mixed * 0.25 * self.master_gain;
             let (dl, dr) = self.delay.process_sample(scaled, scaled);
-            let rev_l = self.reverb.process_sample(dl);
-            let rev_r = self.reverb.process_sample(dr);
+            let rev_l = self.reverb_l.process_sample(dl);
+            let rev_r = self.reverb_r.process_sample(dr);
 
             out_left[i] = rev_l.clamp(-1.0, 1.0);
             out_right[i] = rev_r.clamp(-1.0, 1.0);
