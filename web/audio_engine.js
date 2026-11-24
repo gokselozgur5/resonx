@@ -9,6 +9,8 @@ export class ResonxAudioEngine {
     this.recordedR = [];
     this.isWorklet = false;
     this.activeNodes = new Map();
+    this.masterGainNode = null;
+    this.pannerNode = null;
   }
 
   async init(workletCode) {
@@ -18,6 +20,13 @@ export class ResonxAudioEngine {
     this.analyser = this.ctx.createAnalyser();
     this.analyser.fftSize = 2048;
     this.analyser.smoothingTimeConstant = 0.85;
+
+    // Stereo panner and master gain stage for fallback and visualizer tap
+    if (this.ctx.createStereoPanner) {
+      this.pannerNode = this.ctx.createStereoPanner();
+    }
+    this.masterGainNode = this.ctx.createGain();
+    this.masterGainNode.gain.setValueAtTime(0.8, this.ctx.currentTime);
 
     let url = null;
     try {
@@ -31,6 +40,12 @@ export class ResonxAudioEngine {
       this.analyser.connect(this.ctx.destination);
       this.isWorklet = true;
     } catch {
+      if (this.pannerNode) {
+        this.pannerNode.connect(this.masterGainNode);
+        this.masterGainNode.connect(this.analyser);
+      } else {
+        this.masterGainNode.connect(this.analyser);
+      }
       this.analyser.connect(this.ctx.destination);
       this.isWorklet = false;
     } finally {
@@ -65,7 +80,13 @@ export class ResonxAudioEngine {
     gain.gain.linearRampToValueAtTime(velocity * 0.4, now + 0.01);
     osc.connect(filter);
     filter.connect(gain);
-    gain.connect(this.analyser);
+    if (this.pannerNode) {
+      gain.connect(this.pannerNode);
+    } else if (this.masterGainNode) {
+      gain.connect(this.masterGainNode);
+    } else {
+      gain.connect(this.analyser);
+    }
     osc.start(now);
     this.activeNodes.set(midi, { osc, filter, gain });
   }
@@ -92,10 +113,16 @@ export class ResonxAudioEngine {
     }
     if (!this.fallbackParams) this.fallbackParams = {};
     this.fallbackParams[name] = val;
-    if (name === 'cutoff' && this.ctx) {
+    if (this.ctx) {
       const now = this.ctx.currentTime;
-      for (const nodes of this.activeNodes.values()) {
-        nodes.filter.frequency.setValueAtTime(val, now);
+      if (name === 'cutoff') {
+        for (const nodes of this.activeNodes.values()) {
+          nodes.filter.frequency.setValueAtTime(val, now);
+        }
+      } else if (name === 'masterGain' && this.masterGainNode) {
+        this.masterGainNode.gain.setValueAtTime(val, now);
+      } else if (name === 'pan' && this.pannerNode) {
+        this.pannerNode.pan.setValueAtTime(val, now);
       }
     }
   }
