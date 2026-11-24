@@ -126,6 +126,29 @@ class ResonxWorkletProcessor extends AudioWorkletProcessor {
 
     this.port.onmessage = (e) => this.handleMessage(e.data);
   }
+
+  handleMessage(msg) {
+    if (msg.type === 'noteOn') {
+      let voice = this.voices.find(v => !v.active);
+      if (!voice) {
+        voice = this.voices.reduce((oldest, v) => (v.age > oldest.age ? v : oldest), this.voices[0]);
+      }
+      voice.note = msg.note; voice.velocity = msg.velocity || 0.8;
+      voice.phase1 = 0; voice.phase2 = 0;
+      voice.envStage = 1; voice.filterEnvStage = 1;
+      voice.active = true; voice.age = 0;
+    } else if (msg.type === 'noteOff') {
+      this.voices.forEach(v => {
+        if (v.note === msg.note && v.active) {
+          v.envStage = 4; v.filterEnvStage = 4;
+        }
+      });
+    } else if (msg.type === 'param') {
+      this.params[msg.name] = msg.value;
+    } else if (msg.type === 'preset') {
+      Object.assign(this.params, msg.preset);
+    }
+  }
 }
 registerProcessor('resonx-worklet-processor', ResonxWorkletProcessor);
 `;
