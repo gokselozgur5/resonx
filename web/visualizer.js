@@ -8,4 +8,20 @@ export class ResonxVisualizer {
     this.freqData = new Uint8Array(256);
     this.running = false;
   }
+
+  start() {
+    if (this.running) return;
+    this.running = true;
+    const render = () => {
+      if (!this.running) return;
+      this.draw();
+      requestAnimationFrame(render);
+    };
+    requestAnimationFrame(render);
+  }
+
+  stop() {
+    this.running = false;
+  }
 }
+
