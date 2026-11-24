@@ -7,3 +7,16 @@ export const KEYBOARD_MAP = {
 };
 
 export const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+export class ResonxKeyboard {
+  constructor(container, onNoteOn, onNoteOff) {
+    this.container = container;
+    this.onNoteOn = onNoteOn;
+    this.onNoteOff = onNoteOff;
+    this.activeNotes = new Set();
+    this.keyElements = new Map();
+    this.build();
+    this.bindEvents();
+  }
+}
+
