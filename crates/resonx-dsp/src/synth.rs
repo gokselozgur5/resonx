@@ -20,6 +20,7 @@ pub struct SynthVoice {
     pub filter_env_amount: f32,
     pub base_cutoff: f32,
     pub active_note: u8,
+    pub velocity: f32,
     pub age: u64,
 }
 
@@ -34,19 +35,20 @@ impl SynthVoice {
             filter_env_amount: 1500.0,
             base_cutoff: 800.0,
             active_note: 0,
+            velocity: 0.8,
             age: 0,
         }
     }
 
     pub fn note_on(&mut self, note: u8, velocity: f32) {
         self.active_note = note;
+        self.velocity = velocity.clamp(0.0, 1.0);
         self.age = 0;
         let freq = midi_to_hz(note as f32);
         self.osc1.set_frequency(freq);
         self.osc2.set_frequency(freq * 1.002);
         self.osc1.reset_phase();
         self.osc2.reset_phase();
-        self.amp_env.set_sustain(velocity.clamp(0.1, 1.0));
         self.amp_env.gate_on();
         self.filter_env.gate_on();
     }
@@ -75,7 +77,7 @@ impl SynthVoice {
 
         let filtered = self.filter.process_sample(raw);
         let amp = self.amp_env.next_sample();
-        filtered * amp
+        filtered * amp * self.velocity
     }
 }
 
