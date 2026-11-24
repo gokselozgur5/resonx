@@ -66,6 +66,51 @@ export class ResonxAudioEngine {
       this.workletNode.port.postMessage({ type: 'preset', preset });
     }
   }
+
+  getTimeDomainData(array) {
+    if (this.analyser) {
+      this.analyser.getByteTimeDomainData(array);
+    }
+  }
+
+  getFrequencyData(array) {
+    if (this.analyser) {
+      this.analyser.getByteFrequencyData(array);
+    }
+  }
+
+  startRecording() {
+    this.recordedL = [];
+    this.recordedR = [];
+    this.recording = true;
+    if (this.ctx && !this.recorderNode) {
+      this.recorderNode = this.ctx.createScriptProcessor(4096, 2, 2);
+      this.recorderNode.onaudioprocess = (e) => {
+        if (!this.recording) return;
+        const inL = e.inputBuffer.getChannelData(0);
+        const inR = e.inputBuffer.getChannelData(1);
+        this.recordedL.push(new Float32Array(inL));
+        this.recordedR.push(new Float32Array(inR));
+      };
+      this.analyser.connect(this.recorderNode);
+      this.recorderNode.connect(this.ctx.destination);
+    }
+  }
+
+  stopRecording() {
+    this.recording = false;
+    const totalSamples = this.recordedL.reduce((acc, buf) => acc + buf.length, 0);
+    const left = new Float32Array(totalSamples);
+    const right = new Float32Array(totalSamples);
+    let offset = 0;
+    for (let i = 0; i < this.recordedL.length; i++) {
+      left.set(this.recordedL[i], offset);
+      right.set(this.recordedR[i], offset);
+      offset += this.recordedL[i].length;
+    }
+    return { left, right, sampleRate: this.ctx ? this.ctx.sampleRate : 44100 };
+  }
 }
+
 
 
