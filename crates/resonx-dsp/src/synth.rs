@@ -246,15 +246,24 @@ mod tests {
         // Trigger 8 notes
         for note in 60..68 {
             synth.note_on(note, 0.8);
+            let mut l = [0.0; 10];
+            let mut r = [0.0; 10];
+            synth.render_stereo(&mut l, &mut r);
         }
         for v in &synth.voices {
             assert!(v.is_active());
         }
 
-        // Trigger 9th note - should steal
+        // Trigger 9th and 10th notes to test continuous saturation and stealing oldest voice
         synth.note_on(68, 0.8);
-        let active_count = synth.voices.iter().filter(|v| v.is_active()).count();
-        assert_eq!(active_count, MAX_VOICES);
+        assert_eq!(synth.voices[0].active_note, 68);
+
+        let mut l = [0.0; 10];
+        let mut r = [0.0; 10];
+        synth.render_stereo(&mut l, &mut r);
+
+        synth.note_on(69, 0.8);
+        assert_eq!(synth.voices[1].active_note, 69);
     }
 
     #[test]
