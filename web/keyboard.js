@@ -74,6 +74,14 @@ export class ResonxKeyboard {
     if (this.onNoteOff) this.onNoteOff(note);
   }
 
+  releaseAll() {
+    this.activeNotes.forEach(note => {
+      this.setKeyActive(note, false);
+      if (this.onNoteOff) this.onNoteOff(note);
+    });
+    this.activeNotes.clear();
+  }
+
   bindEvents() {
     this.container.addEventListener('pointerdown', (e) => {
       const key = e.target.closest('.key');
@@ -82,12 +90,11 @@ export class ResonxKeyboard {
       this.triggerNoteOn(note);
     });
 
-    window.addEventListener('pointerup', () => {
-      this.activeNotes.forEach(note => {
-        this.setKeyActive(note, false);
-        if (this.onNoteOff) this.onNoteOff(note);
-      });
-      this.activeNotes.clear();
+    this.container.addEventListener('pointercancel', () => this.releaseAll());
+    window.addEventListener('pointerup', () => this.releaseAll());
+    window.addEventListener('blur', () => this.releaseAll());
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) this.releaseAll();
     });
 
     window.addEventListener('keydown', (e) => {

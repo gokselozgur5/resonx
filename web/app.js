@@ -28,9 +28,14 @@ window.addEventListener('DOMContentLoaded', async () => {
   }
 
   const kbContainer = document.getElementById('keyboard-container');
-  const keyboard = new ResonxKeyboard(
+  let keyboard;
+  keyboard = new ResonxKeyboard(
     kbContainer,
-    async (note, vel) => { await ensureInit(); engine.noteOn(note, vel); },
+    async (note, vel) => {
+      await ensureInit();
+      if (!keyboard.activeNotes.has(note)) return;
+      engine.noteOn(note, vel);
+    },
     (note) => { engine.noteOff(note); }
   );
 
