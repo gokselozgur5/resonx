@@ -51,5 +51,24 @@ class ResonxVoice {
 
     return Number.isFinite(y4) ? y4 : 0.0;
   }
+
+  processEnvelope(stage, level, a, d, s, r) {
+    if (stage === 1) { // attack
+      const rate = 1.0 / (Math.max(0.001, a) * this.sampleRate);
+      level += rate;
+      if (level >= 1.0) { level = 1.0; stage = 2; }
+    } else if (stage === 2) { // decay
+      const rate = (1.0 - s) / (Math.max(0.001, d) * this.sampleRate);
+      level -= rate;
+      if (level <= s) { level = s; stage = 3; }
+    } else if (stage === 3) { // sustain
+      level = s;
+    } else if (stage === 4) { // release
+      const rate = s / (Math.max(0.001, r) * this.sampleRate);
+      level -= rate;
+      if (level <= 0.0001) { level = 0.0; stage = 0; }
+    }
+    return [stage, level];
+  }
 }
 `;
