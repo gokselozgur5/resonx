@@ -12,6 +12,24 @@
       <h1 class="synth-title">RESONX // POLYPHONIC SYNTH</h1>
       <span id="status-badge" class="badge">Click anywhere to start</span>
     </header>
+
+    <section class="controls-bar">
+      <label for="preset-select">Preset:</label>
+      <select id="preset-select">
+        <option value="analog-bass">Analog Bass</option>
+        <option value="blade-pad">Blade Runner Pad</option>
+        <option value="acid-303">Acid 303</option>
+        <option value="sub-pluck">Sub Pluck</option>
+        <option value="fm-bell">FM Bell</option>
+      </select>
+      <button id="demo-btn">Play Demo Arp</button>
+      <button id="record-btn">Record Audio to WAV</button>
+    </section>
+
+    <div class="canvas-container">
+      <canvas id="visualizer-canvas" width="960" height="140"></canvas>
+    </div>
   </main>
+
 </body>
 </html>
