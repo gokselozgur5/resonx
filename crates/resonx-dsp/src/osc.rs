@@ -111,3 +111,46 @@ fn poly_blep(t: f32, dt: f32) -> f32 {
         0.0
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_oscillator_bounded_output() {
+        let waveforms = [
+            Waveform::Sine,
+            Waveform::Saw,
+            Waveform::Square,
+            Waveform::Triangle,
+            Waveform::Noise,
+        ];
+        for wf in waveforms {
+            let mut osc = Oscillator::new(44100.0);
+            osc.set_waveform(wf);
+            osc.set_frequency(440.0);
+            for _ in 0..1000 {
+                let s = osc.next_sample();
+                assert!(!s.is_nan(), "Sample must not be NaN for {wf:?}");
+                assert!(s >= -1.05 && s <= 1.05, "Sample out of bounds: {s}");
+            }
+        }
+    }
+
+    #[test]
+    fn test_saw_period_frequency() {
+        let mut osc = Oscillator::new(44100.0);
+        osc.set_waveform(Waveform::Saw);
+        osc.set_frequency(100.0);
+        let mut zero_crossings: i32 = 0;
+        let mut prev = osc.next_sample();
+        for _ in 0..44100 {
+            let cur = osc.next_sample();
+            if prev < 0.0 && cur >= 0.0 {
+                zero_crossings += 1;
+            }
+            prev = cur;
+        }
+        assert!((zero_crossings - 100).abs() <= 2);
+    }
+}
