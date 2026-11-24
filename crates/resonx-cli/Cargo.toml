@@ -1,0 +1,10 @@
+[package]
+name = "resonx-cli"
+version = "0.1.0"
+edition = "2021"
+authors = ["Göksel Özgür <gokselozgur5@gmail.com>"]
+license = "MIT"
+description = "Deterministic offline audio renderer and CLI for resonx"
+
+[dependencies]
+resonx-dsp = { path = "../resonx-dsp" }

@@ -1,0 +1,11 @@
+[package]
+name = "resonx-dsp"
+version = "0.1.0"
+edition = "2021"
+authors = ["Göksel Özgür <gokselozgur5@gmail.com>"]
+license = "MIT"
+description = "Deterministic zero-alloc no_std polyphonic DSP synthesizer core"
+
+[features]
+default = ["std"]
+std = []
