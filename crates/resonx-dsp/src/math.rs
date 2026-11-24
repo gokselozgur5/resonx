@@ -37,7 +37,8 @@ pub fn fast_sin(x: f32) -> f32 {
         y = -PI - y;
     }
     let y2 = y * y;
-    let p = y * (1.0 + y2 * (-0.16666657 + y2 * (0.008333015 + y2 * (-0.000198409 + y2 * 0.0000027526))));
+    let p = y
+        * (1.0 + y2 * (-0.16666657 + y2 * (0.008333015 + y2 * (-0.000198409 + y2 * 0.0000027526))));
     clamp_f32(p, -1.0, 1.0)
 }
 
@@ -100,7 +101,8 @@ pub fn fast_exp2(x: f32) -> f32 {
     let ipart = x.floor_approx() as i32;
     let fpart = x - (ipart as f32);
 
-    let poly = 1.0 + fpart * (0.6930129 + fpart * (0.2415544 + fpart * (0.0517443 + fpart * 0.0136873)));
+    let poly =
+        1.0 + fpart * (0.6930129 + fpart * (0.2415544 + fpart * (0.0517443 + fpart * 0.0136873)));
     let scale = if ipart >= 0 {
         (1i64 << ipart.min(30)) as f32
     } else {

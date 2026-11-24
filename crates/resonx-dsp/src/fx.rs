@@ -155,10 +155,7 @@ impl SchroederReverb {
                 CombFilter::new(1277, 0.84, 0.2),
                 CombFilter::new(1356, 0.84, 0.2),
             ],
-            allpasses: [
-                AllpassFilter::new(225, 0.5),
-                AllpassFilter::new(341, 0.5),
-            ],
+            allpasses: [AllpassFilter::new(225, 0.5), AllpassFilter::new(341, 0.5)],
             wet: 0.3,
         }
     }
