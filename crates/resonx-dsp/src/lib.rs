@@ -3,5 +3,6 @@
 
 pub mod envelope;
 pub mod filter;
+pub mod fx;
 pub mod math;
 pub mod osc;
