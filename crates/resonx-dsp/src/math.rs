@@ -73,3 +73,85 @@ impl FloatExt for f32 {
         }
     }
 }
+
+/// Converts MIDI note number (0..127) to frequency in Hertz (A4 = 69 -> 440 Hz).
+#[inline]
+pub fn midi_to_hz(midi: f32) -> f32 {
+    let exponent = (midi - 69.0) / 12.0;
+    440.0 * fast_exp2(exponent)
+}
+
+/// Converts decibels to linear amplitude multiplier.
+#[inline]
+pub fn db_to_linear(db: f32) -> f32 {
+    let exp2_arg = db * (3.321928094887362 / 20.0);
+    fast_exp2(exp2_arg)
+}
+
+/// Fast base-2 exponentiation approximation for float values.
+#[inline]
+pub fn fast_exp2(x: f32) -> f32 {
+    if x < -24.0 {
+        return 0.0;
+    }
+    if x > 24.0 {
+        return 16777216.0;
+    }
+    let ipart = x.floor_approx() as i32;
+    let fpart = x - (ipart as f32);
+
+    let poly = 1.0 + fpart * (0.6930129 + fpart * (0.2415544 + fpart * (0.0517443 + fpart * 0.0136873)));
+    let scale = if ipart >= 0 {
+        (1i64 << ipart.min(30)) as f32
+    } else {
+        1.0 / ((1i64 << (-ipart).min(30)) as f32)
+    };
+    poly * scale
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_clamp_f32() {
+        assert_eq!(clamp_f32(5.0, 0.0, 2.0), 2.0);
+        assert_eq!(clamp_f32(-1.0, 0.0, 2.0), 0.0);
+        assert_eq!(clamp_f32(1.5, 0.0, 2.0), 1.5);
+    }
+
+    #[test]
+    fn test_fast_sin_accuracy() {
+        for i in 0..360 {
+            let rad = (i as f32) * PI / 180.0;
+            let approx = fast_sin(rad);
+            #[cfg(feature = "std")]
+            {
+                let diff = abs_f32(rad.sin() - approx);
+                assert!(diff < 1e-4, "sin({rad}) diff={diff} exceeds 1e-4");
+            }
+            assert!(approx >= -1.0 && approx <= 1.0);
+        }
+    }
+
+    #[test]
+    fn test_fast_tanh_saturation() {
+        assert_eq!(fast_tanh(0.0), 0.0);
+        assert!((fast_tanh(10.0) - 1.0).abs() < 1e-4);
+        assert!((fast_tanh(-10.0) - (-1.0)).abs() < 1e-4);
+    }
+
+    #[test]
+    fn test_midi_to_hz_a4() {
+        let a4 = midi_to_hz(69.0);
+        assert!((a4 - 440.0).abs() < 0.1, "A4 must be ~440Hz, got {a4}");
+        let a5 = midi_to_hz(81.0);
+        assert!((a5 - 880.0).abs() < 0.5, "A5 must be ~880Hz, got {a5}");
+    }
+
+    #[test]
+    fn test_db_to_linear() {
+        assert!((db_to_linear(0.0) - 1.0).abs() < 1e-3);
+        assert!((db_to_linear(-6.0) - 0.50118).abs() < 1e-2);
+    }
+}
