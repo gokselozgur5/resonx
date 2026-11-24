@@ -66,4 +66,41 @@ window.addEventListener('DOMContentLoaded', async () => {
     });
   }
   bindInputEvents();
+
+  presetSelect.addEventListener('change', async (e) => {
+    await ensureInit();
+    const preset = PRESETS[e.target.value];
+    if (preset) {
+      engine.applyPreset(preset);
+      syncControls(preset);
+    }
+  });
+  syncControls(PRESETS['analog-bass']);
+
+  demoBtn.addEventListener('click', async () => {
+    await ensureInit();
+    if (demoPlaying) {
+      demoPlaying = false;
+      clearTimeout(demoTimer);
+      demoBtn.textContent = 'Play Demo Arp';
+      demoBtn.classList.remove('active');
+      return;
+    }
+    demoPlaying = true;
+    demoBtn.textContent = 'Stop Demo Arp';
+    demoBtn.classList.add('active');
+
+    let step = 0;
+    const playStep = () => {
+      if (!demoPlaying) return;
+      const { note, duration } = DEMO_SEQUENCE[step % DEMO_SEQUENCE.length];
+      if (note > 0) {
+        keyboard.triggerNoteOn(note);
+        setTimeout(() => keyboard.triggerNoteOff(note), duration * 800);
+      }
+      step++;
+      demoTimer = setTimeout(playStep, duration * 1000);
+    };
+    playStep();
+  });
 });
