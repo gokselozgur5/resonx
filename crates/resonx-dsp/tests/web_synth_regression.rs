@@ -4,7 +4,11 @@ use std::path::Path;
 
 #[test]
 fn test_web_synth_assets_exist_and_zero_cdn() {
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap();
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap();
     let index_path = root.join("index.html");
     assert!(index_path.exists(), "index.html must exist at repo root");
 
@@ -20,7 +24,11 @@ fn test_web_synth_assets_exist_and_zero_cdn() {
 
 #[test]
 fn test_web_js_modules_and_styles_exist() {
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap();
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap();
     let web_dir = root.join("web");
     let required_files = [
         "presets.js",
@@ -46,24 +54,26 @@ fn test_web_js_modules_and_styles_exist() {
 
 #[test]
 fn test_worklet_dsp_has_polyblep_and_filter() {
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap();
-    let worklet_js = fs::read_to_string(root.join("web/worklet_dsp.js"))
-        .expect("Failed to read worklet_dsp.js");
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap();
+    let worklet_js =
+        fs::read_to_string(root.join("web/worklet_dsp.js")).expect("Failed to read worklet_dsp.js");
     assert!(worklet_js.contains("RESONX_WORKLET_CODE"));
     assert!(worklet_js.contains("polyBlep"));
     assert!(worklet_js.contains("processLadderFilter"));
     assert!(worklet_js.contains("ResonxWorkletProcessor"));
     assert!(worklet_js.contains("registerProcessor"));
 
-    let presets_js = fs::read_to_string(root.join("web/presets.js"))
-        .expect("Failed to read presets.js");
+    let presets_js =
+        fs::read_to_string(root.join("web/presets.js")).expect("Failed to read presets.js");
     assert!(presets_js.contains("analog-bass"));
     assert!(presets_js.contains("blade-pad"));
     assert!(presets_js.contains("DEMO_SEQUENCE"));
 
-    let wav_js = fs::read_to_string(root.join("web/wav_export.js"))
-        .expect("Failed to read wav_export.js");
+    let wav_js =
+        fs::read_to_string(root.join("web/wav_export.js")).expect("Failed to read wav_export.js");
     assert!(wav_js.contains("encodeWav16"));
 }
-
-
