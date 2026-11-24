@@ -118,7 +118,7 @@ class ResonxWorkletProcessor extends AudioWorkletProcessor {
       cutoff: 400, resonance: 0.6, drive: 1.8, envAmount: 2000,
       attack: 0.005, decay: 0.15, sustain: 0.4, release: 0.1,
       lfoRate: 1.5, lfoDepth: 80, delayMix: 0.2, delayTime: 0.25,
-      delayFeedback: 0.35, masterGain: 0.8
+      delayFeedback: 0.35, pan: 0.0, masterGain: 0.8
     };
     this.delayBufferL = new Float32Array(sampleRate * 2);
     this.delayBufferR = new Float32Array(sampleRate * 2);
@@ -159,6 +159,9 @@ class ResonxWorkletProcessor extends AudioWorkletProcessor {
     ));
     const dMix = this.params.delayMix || 0.0;
     const dFb = Math.min(0.85, this.params.delayFeedback || 0.3);
+    const pan = Math.max(-1.0, Math.min(1.0, this.params.pan || 0.0));
+    const panL = Math.cos((pan + 1.0) * Math.PI * 0.25);
+    const panR = Math.sin((pan + 1.0) * Math.PI * 0.25);
 
     for (let i = 0; i < frames; i++) {
       this.lfoPhase = (this.lfoPhase + lfoDt) % 1.0;
@@ -167,15 +170,17 @@ class ResonxWorkletProcessor extends AudioWorkletProcessor {
       for (let v = 0; v < 8; v++) {
         if (this.voices[v].active) mix += this.voices[v].processSample(this.params, lfoVal);
       }
-      const direct = mix * 0.2 * (this.params.masterGain || 0.8);
+      const direct = mix * 0.2 * (this.params.masterGain !== undefined ? this.params.masterGain : 0.8);
+      const directL = direct * panL * 1.414;
+      const directR = direct * panR * 1.414;
       const readIdx = (this.delayWriteIdx - delaySamples + this.delayBufferL.length) % this.delayBufferL.length;
       const dL = this.delayBufferL[readIdx]; const dR = this.delayBufferR[readIdx];
-      this.delayBufferL[this.delayWriteIdx] = direct + dR * dFb;
-      this.delayBufferR[this.delayWriteIdx] = direct + dL * dFb;
+      this.delayBufferL[this.delayWriteIdx] = directL + dR * dFb;
+      this.delayBufferR[this.delayWriteIdx] = directR + dL * dFb;
       this.delayWriteIdx = (this.delayWriteIdx + 1) % this.delayBufferL.length;
 
-      outL[i] = Math.max(-1.0, Math.min(1.0, direct * (1.0 - dMix) + dL * dMix));
-      outR[i] = Math.max(-1.0, Math.min(1.0, direct * (1.0 - dMix) + dR * dMix));
+      outL[i] = Math.max(-1.0, Math.min(1.0, directL * (1.0 - dMix) + dL * dMix));
+      outR[i] = Math.max(-1.0, Math.min(1.0, directR * (1.0 - dMix) + dR * dMix));
     }
     return true;
   }
