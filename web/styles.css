@@ -159,6 +159,42 @@ canvas {
   display: block;
 }
 
+.keyboard-container {
+  display: flex;
+  position: relative;
+  height: 130px;
+  user-select: none;
+  touch-action: none;
+  background: #000;
+  border-radius: 6px;
+  padding: 4px;
+}
+
+.key {
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 6px;
+  border-radius: 0 0 4px 4px;
+  transition: background 0.1s;
+}
+
+.white-key {
+  flex: 1;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #64748b;
+  z-index: 1;
+}
+
+.white-key.active {
+  background: var(--accent-cyan) !important;
+  box-shadow: 0 0 12px var(--accent-cyan);
+}
+
+
 
 
 
