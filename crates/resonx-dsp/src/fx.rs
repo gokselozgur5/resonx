@@ -193,3 +193,43 @@ impl Default for SchroederReverb {
         Self::new()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_ping_pong_decay_and_finite() {
+        let mut delay = StereoPingPongDelay::new(44100.0);
+        delay.set_delay_time(0.01); // 10ms
+        delay.set_feedback(0.5);
+        delay.set_wet(0.5);
+
+        // Send a single impulse into left channel
+        let (out_l0, out_r0) = delay.process_sample(1.0, 0.0);
+        assert!(!out_l0.is_nan() && !out_r0.is_nan());
+
+        let mut energy = 0.0_f32;
+        for _ in 0..5000 {
+            let (l, r) = delay.process_sample(0.0, 0.0);
+            assert!(l.is_finite() && r.is_finite());
+            energy += l * l + r * r;
+        }
+        assert!(energy > 0.01, "Echoes should produce sustained energy");
+    }
+
+    #[test]
+    fn test_schroeder_reverb_stability() {
+        let mut verb = SchroederReverb::new();
+        verb.set_room_size(0.8);
+        verb.set_wet(0.5);
+
+        // Feed impulse
+        let _ = verb.process_sample(1.0);
+        for _ in 0..5000 {
+            let out = verb.process_sample(0.0);
+            assert!(out.is_finite());
+            assert!((-2.0..=2.0).contains(&out));
+        }
+    }
+}
