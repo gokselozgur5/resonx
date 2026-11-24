@@ -51,18 +51,19 @@ impl MoogLadderFilter {
     pub fn process_sample(&mut self, input: f32) -> f32 {
         let driven_input = fast_tanh(input * self.drive);
         let g = fast_tanh(PI * self.cutoff_hz / self.sample_rate);
-        let g_pow = g * g * g * g;
         let k = 4.0 * self.resonance;
 
         // Feedback estimation with linear solver
-        let s_sum = self.s[0] * (g * g * g) + self.s[1] * (g * g) + self.s[2] * g + self.s[3];
-        let u = (driven_input - k * s_sum) / (1.0 + k * g_pow);
+        let g1 = g / (1.0 + g);
+        let g1_4 = g1 * g1 * g1 * g1;
+        let s_sum = self.s[0] * (g1 * g1 * g1) + self.s[1] * (g1 * g1) + self.s[2] * g1 + self.s[3];
+        let u = (driven_input - k * s_sum) / (1.0 + k * g1_4);
 
         let mut current_in = u;
-        for i in 0..4 {
-            let v = (current_in - self.s[i]) * g;
-            let y = v + self.s[i];
-            self.s[i] = y + v;
+        for stage in &mut self.s {
+            let v = (current_in - *stage) * g / (1.0 + g);
+            let y = v + *stage;
+            *stage = y + v;
             current_in = y;
         }
 
@@ -137,6 +138,61 @@ impl StateVariableFilter {
             bandpass: v1,
             highpass: input - k * v1 - v2,
             notch: input - k * v1,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_moog_attenuation_and_finite() {
+        let mut filter = MoogLadderFilter::new(44100.0);
+        filter.set_cutoff(500.0);
+        filter.set_resonance(0.8);
+        filter.set_drive(1.2);
+
+        // Process a low frequency sine wave (100 Hz)
+        let mut low_energy = 0.0_f32;
+        for i in 0..1000 {
+            let t = (i as f32) / 44100.0;
+            let low_in = (t * 100.0 * 2.0 * PI).sin();
+            let out_low = filter.process_sample(low_in);
+            assert!(!out_low.is_nan() && out_low.is_finite());
+            low_energy += out_low * out_low;
+        }
+
+        filter.reset();
+
+        // Process a high frequency sine wave (5000 Hz)
+        let mut high_energy = 0.0_f32;
+        for i in 0..1000 {
+            let t = (i as f32) / 44100.0;
+            let high_in = (t * 5000.0 * 2.0 * PI).sin();
+            let out_high = filter.process_sample(high_in);
+            assert!(!out_high.is_nan() && out_high.is_finite());
+            high_energy += out_high * out_high;
+        }
+
+        assert!(
+            low_energy > high_energy * 2.0,
+            "Low-pass filter must pass low frequencies ({low_energy}) significantly more than high ({high_energy})"
+        );
+    }
+
+    #[test]
+    fn test_svf_multi_outputs() {
+        let mut svf = StateVariableFilter::new(44100.0);
+        svf.set_cutoff(1000.0);
+        svf.set_resonance(0.5);
+
+        for _ in 0..100 {
+            let out = svf.process_sample(0.5);
+            assert!(!out.lowpass.is_nan());
+            assert!(!out.bandpass.is_nan());
+            assert!(!out.highpass.is_nan());
+            assert!(!out.notch.is_nan());
         }
     }
 }

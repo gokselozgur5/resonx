@@ -1,11 +1,11 @@
 //! Pure deterministic no_std DSP math primitives and approximations.
 
-/// Mathematical constant PI (32-bit floating point).
-pub const PI: f32 = 3.14159265358979323846_f32;
-/// Two times PI.
-pub const TAU: f32 = 6.28318530717958647692_f32;
-/// Half PI.
-pub const HALF_PI: f32 = 1.57079632679489661923_f32;
+#[allow(clippy::approx_constant, clippy::excessive_precision)]
+pub const PI: f32 = core::f32::consts::PI;
+#[allow(clippy::approx_constant, clippy::excessive_precision)]
+pub const TAU: f32 = core::f32::consts::TAU;
+#[allow(clippy::approx_constant, clippy::excessive_precision)]
+pub const HALF_PI: f32 = core::f32::consts::FRAC_PI_2;
 
 /// Clamps a 32-bit float between `min` and `max`.
 #[inline]
@@ -84,7 +84,7 @@ pub fn midi_to_hz(midi: f32) -> f32 {
 /// Converts decibels to linear amplitude multiplier.
 #[inline]
 pub fn db_to_linear(db: f32) -> f32 {
-    let exp2_arg = db * (3.321928094887362 / 20.0);
+    let exp2_arg = db * (core::f32::consts::LOG2_10 / 20.0);
     fast_exp2(exp2_arg)
 }
 
@@ -130,7 +130,7 @@ mod tests {
                 let diff = abs_f32(rad.sin() - approx);
                 assert!(diff < 1e-4, "sin({rad}) diff={diff} exceeds 1e-4");
             }
-            assert!(approx >= -1.0 && approx <= 1.0);
+            assert!((-1.0..=1.0).contains(&approx));
         }
     }
 
