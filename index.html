@@ -13,8 +13,25 @@
         <h1 class="synth-title">RESONX</h1>
         <span class="synth-model">MODEL-01 // POLYPHONIC DSP RACK</span>
       </div>
-      <div class="header-status">
-        <span id="status-badge" class="badge">STANDBY — CLICK TO ENGAGE</span>
+      <div class="header-master-section">
+        <div class="pan-indicator-wrapper">
+          <span class="header-label">PAN</span>
+          <div class="pan-visual">
+            <span class="pan-ch-label">L</span>
+            <div id="pan-bar" class="pan-bar-container">
+              <div class="pan-center-notch"></div>
+              <div id="pan-needle" class="pan-needle"></div>
+            </div>
+            <span class="pan-ch-label">R</span>
+          </div>
+          <span id="pan-readout" class="pan-readout">C</span>
+        </div>
+        <div id="knob-master-container" class="master-knob-wrapper">
+          <div id="knob-master"></div>
+        </div>
+        <div class="header-status">
+          <span id="status-badge" class="badge">STANDBY — CLICK TO ENGAGE</span>
+        </div>
       </div>
     </header>
 
@@ -106,6 +123,17 @@
     </section>
 
     <section class="keyboard-section">
+      <div class="keyboard-toolbar">
+        <div class="octave-controls">
+          <span class="octave-title">OCTAVE</span>
+          <button id="octave-down-btn" class="octave-btn" title="Octave Down (Shift 1 Octave Down)">-</button>
+          <span id="octave-display" class="octave-readout">0</span>
+          <button id="octave-up-btn" class="octave-btn" title="Octave Up (Shift 1 Octave Up)">+</button>
+        </div>
+        <div class="keyboard-hints">
+          <span>KEYS [Z-M] C3-B3 &bull; [Q-U] C4-B4</span>
+        </div>
+      </div>
       <div id="keyboard-container" class="keyboard-container"></div>
     </section>
   </main>
