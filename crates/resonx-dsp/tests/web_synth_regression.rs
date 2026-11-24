@@ -77,6 +77,23 @@ fn test_worklet_dsp_has_polyblep_and_filter() {
     assert!(presets_js.contains("blade-pad"));
     assert!(presets_js.contains("DEMO_SEQUENCE"));
 
+    let app_js = fs::read_to_string(root.join("web/app.js")).expect("Failed to read app.js");
+    assert!(
+        app_js.contains("if (!keyboard.activeNotes.has(note)) return;"),
+        "app.js must check activeNotes after ensureInit to prevent stuck notes on quick tap"
+    );
+
+    let keyboard_js =
+        fs::read_to_string(root.join("web/keyboard.js")).expect("Failed to read keyboard.js");
+    assert!(
+        keyboard_js.contains("releaseAll()"),
+        "keyboard.js must provide releaseAll method"
+    );
+    assert!(
+        keyboard_js.contains("visibilitychange"),
+        "keyboard.js must bind releaseAll to visibilitychange"
+    );
+
     let wav_js =
         fs::read_to_string(root.join("web/wav_export.js")).expect("Failed to read wav_export.js");
     assert!(wav_js.contains("encodeWav16"));
