@@ -149,6 +149,36 @@ class ResonxWorkletProcessor extends AudioWorkletProcessor {
       Object.assign(this.params, msg.preset);
     }
   }
+
+  process(inputs, outputs) {
+    const outL = outputs[0][0]; const outR = outputs[0][1] || outputs[0][0];
+    const frames = outL.length;
+    const lfoDt = (this.params.lfoRate || 1.0) / sampleRate;
+    const delaySamples = Math.max(1, Math.min(this.delayBufferL.length - 1,
+      Math.floor((this.params.delayTime || 0.25) * sampleRate)
+    ));
+    const dMix = this.params.delayMix || 0.0;
+    const dFb = Math.min(0.85, this.params.delayFeedback || 0.3);
+
+    for (let i = 0; i < frames; i++) {
+      this.lfoPhase = (this.lfoPhase + lfoDt) % 1.0;
+      const lfoVal = Math.sin(2.0 * Math.PI * this.lfoPhase);
+      let mix = 0.0;
+      for (let v = 0; v < 8; v++) {
+        if (this.voices[v].active) mix += this.voices[v].processSample(this.params, lfoVal);
+      }
+      const direct = mix * 0.2 * (this.params.masterGain || 0.8);
+      const readIdx = (this.delayWriteIdx - delaySamples + this.delayBufferL.length) % this.delayBufferL.length;
+      const dL = this.delayBufferL[readIdx]; const dR = this.delayBufferR[readIdx];
+      this.delayBufferL[this.delayWriteIdx] = direct + dR * dFb;
+      this.delayBufferR[this.delayWriteIdx] = direct + dL * dFb;
+      this.delayWriteIdx = (this.delayWriteIdx + 1) % this.delayBufferL.length;
+
+      outL[i] = Math.max(-1.0, Math.min(1.0, direct * (1.0 - dMix) + dL * dMix));
+      outR[i] = Math.max(-1.0, Math.min(1.0, direct * (1.0 - dMix) + dR * dMix));
+    }
+    return true;
+  }
 }
 registerProcessor('resonx-worklet-processor', ResonxWorkletProcessor);
 `;
