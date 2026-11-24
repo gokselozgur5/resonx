@@ -21,3 +21,17 @@ cargo build --workspace
 cargo test --workspace
 cargo run -p resonx-cli -- render --preset analog-bass --out demo.wav
 ```
+
+### Local Web Server
+
+```bash
+python3 -m http.server 8080
+```
+Open `http://localhost:8080` in any modern browser.
+
+### Keyboard & MIDI Controls
+
+- QWERTY lower octave (C3-B3): `Z S X D C V G B H N J M`
+- QWERTY upper octave (C4-B4): `Q 2 W 3 E R 5 T 6 Y 7 U`
+- WebMIDI: Plug in any standard USB/Bluetooth MIDI keyboard for velocity-sensitive playback.
+
