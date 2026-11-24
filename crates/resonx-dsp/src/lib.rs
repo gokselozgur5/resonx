@@ -1,0 +1,4 @@
+//! Deterministic zero-allocation polyphonic DSP engine.
+#![cfg_attr(not(feature = "std"), no_std)]
+
+pub mod math;
