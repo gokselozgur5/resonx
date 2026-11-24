@@ -16,4 +16,21 @@ window.addEventListener('DOMContentLoaded', async () => {
   const recordBtn = document.getElementById('record-btn');
   let demoPlaying = false;
   let demoTimer = null;
+
+  async function ensureInit() {
+    if (!engine.ctx) {
+      await engine.init(RESONX_WORKLET_CODE);
+      visualizer.start();
+      statusBadge.textContent = engine.isWorklet ? 'DSP Worklet 48kHz' : 'WebAudio Fallback';
+      statusBadge.classList.add('live');
+    }
+    await engine.resume();
+  }
+
+  const kbContainer = document.getElementById('keyboard-container');
+  const keyboard = new ResonxKeyboard(
+    kbContainer,
+    async (note, vel) => { await ensureInit(); engine.noteOn(note, vel); },
+    (note) => { engine.noteOff(note); }
+  );
 });
