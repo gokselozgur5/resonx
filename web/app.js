@@ -40,6 +40,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     kbContainer,
     async (note, vel) => {
       await ensureInit();
+      if (!keyboard.activeNotes.has(note)) return;
       engine.noteOn(note, vel);
     },
     (note) => {
@@ -88,6 +89,7 @@ window.addEventListener('DOMContentLoaded', async () => {
       size: 58,
       onChange: async (val) => {
         await ensureInit();
+      if (!keyboard.activeNotes.has(note)) return;
         engine.setParam(cfg.id, val);
       }
     });
@@ -105,6 +107,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   presetSelect.addEventListener('change', async (e) => {
     await ensureInit();
+      if (!keyboard.activeNotes.has(note)) return;
     const preset = PRESETS[e.target.value];
     if (preset) {
       engine.applyPreset(preset);
@@ -120,6 +123,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   // Demo Arpeggiator
   demoBtn.addEventListener('click', async () => {
     await ensureInit();
+      if (!keyboard.activeNotes.has(note)) return;
     if (demoPlaying) {
       demoPlaying = false;
       clearTimeout(demoTimer);
@@ -148,6 +152,7 @@ window.addEventListener('DOMContentLoaded', async () => {
   // WAV Recording
   recordBtn.addEventListener('click', async () => {
     await ensureInit();
+      if (!keyboard.activeNotes.has(note)) return;
     if (!engine.recording) {
       engine.startRecording();
       recordBtn.classList.add('recording');
