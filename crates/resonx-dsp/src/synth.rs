@@ -295,6 +295,15 @@ mod tests {
     }
 
     #[test]
+    fn test_polysynth_separate_stereo_reverb_instances() {
+        let synth = PolySynth::new(44100.0);
+        // PolySynth must maintain two separate SchroederReverb instances (reverb_l, reverb_r)
+        // so that L and R channels don't cross-contaminate or clock one unit at 2x rate.
+        let _ = &synth.reverb_l;
+        let _ = &synth.reverb_r;
+    }
+
+    #[test]
     fn test_polysynth_render_preset() {
         let mut synth = PolySynth::new(44100.0);
         synth.set_preset(PatchPreset::AnalogBass);
