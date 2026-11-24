@@ -41,7 +41,26 @@ export class ResonxVisualizer {
       this.ctx.fillRect(x, h - barH, barWidth, barH);
     }
     this.ctx.globalAlpha = 1.0;
+
+    this.engine.getTimeDomainData(this.timeData);
+    this.ctx.lineWidth = 2.5;
+    this.ctx.strokeStyle = '#06b6d4'; // neon cyan
+    this.ctx.shadowColor = '#06b6d4';
+    this.ctx.shadowBlur = 8;
+    this.ctx.beginPath();
+    const sliceWidth = w / this.timeData.length;
+    let px = 0;
+    for (let i = 0; i < this.timeData.length; i++) {
+      const v = this.timeData[i] / 128.0;
+      const py = (v * h) / 2.0;
+      if (i === 0) this.ctx.moveTo(px, py);
+      else this.ctx.lineTo(px, py);
+      px += sliceWidth;
+    }
+    this.ctx.stroke();
+    this.ctx.shadowBlur = 0;
   }
 }
+
 
 
