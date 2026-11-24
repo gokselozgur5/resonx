@@ -55,7 +55,36 @@ export class ResonxKeyboard {
     this.setKeyActive(note, false);
     if (this.onNoteOff) this.onNoteOff(note);
   }
+
+  bindEvents() {
+    this.container.addEventListener('pointerdown', (e) => {
+      const key = e.target.closest('.key');
+      if (!key) return;
+      const note = parseInt(key.dataset.note, 10);
+      this.triggerNoteOn(note);
+    });
+
+    window.addEventListener('pointerup', () => {
+      this.activeNotes.forEach(note => {
+        this.setKeyActive(note, false);
+        if (this.onNoteOff) this.onNoteOff(note);
+      });
+      this.activeNotes.clear();
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (e.repeat || e.target.tagName === 'INPUT') return;
+      const note = KEYBOARD_MAP[e.code];
+      if (note !== undefined) this.triggerNoteOn(note);
+    });
+
+    window.addEventListener('keyup', (e) => {
+      const note = KEYBOARD_MAP[e.code];
+      if (note !== undefined) this.triggerNoteOff(note);
+    });
+  }
 }
+
 
 
 
