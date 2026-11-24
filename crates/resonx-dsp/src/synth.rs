@@ -235,3 +235,44 @@ impl PolySynth {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_polysynth_steals_oldest_voice() {
+        let mut synth = PolySynth::new(44100.0);
+        // Trigger 8 notes
+        for note in 60..68 {
+            synth.note_on(note, 0.8);
+        }
+        for v in &synth.voices {
+            assert!(v.is_active());
+        }
+
+        // Trigger 9th note - should steal
+        synth.note_on(68, 0.8);
+        let active_count = synth.voices.iter().filter(|v| v.is_active()).count();
+        assert_eq!(active_count, MAX_VOICES);
+    }
+
+    #[test]
+    fn test_polysynth_render_preset() {
+        let mut synth = PolySynth::new(44100.0);
+        synth.set_preset(PatchPreset::AnalogBass);
+        synth.note_on(36, 0.9); // C2
+
+        let mut left = [0.0; 1000];
+        let mut right = [0.0; 1000];
+        synth.render_stereo(&mut left, &mut right);
+
+        let sum_energy: f32 = left.iter().zip(right.iter()).map(|(l, r)| l * l + r * r).sum();
+        assert!(sum_energy > 0.01, "Synth must produce audio energy");
+        for (l, r) in left.iter().zip(right.iter()) {
+            assert!(l.is_finite() && r.is_finite());
+            assert!((-1.0..=1.0).contains(l));
+            assert!((-1.0..=1.0).contains(r));
+        }
+    }
+}
