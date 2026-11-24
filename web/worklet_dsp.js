@@ -70,5 +70,41 @@ class ResonxVoice {
     }
     return [stage, level];
   }
+
+  processSample(params, lfoVal) {
+    if (this.envStage === 0) { this.active = false; return 0.0; }
+    this.age++;
+
+    const freq = 440.0 * Math.pow(2.0, (this.note - 69) / 12.0);
+    const dt1 = freq / this.sampleRate;
+    const dt2 = (freq * (1.0 + params.detune * 0.001)) / this.sampleRate;
+
+    this.phase1 = (this.phase1 + dt1) % 1.0;
+    this.phase2 = (this.phase2 + dt2) % 1.0;
+
+    const s1 = this.oscSample(params.osc1, this.phase1, dt1);
+    const s2 = this.oscSample(params.osc2, this.phase2, dt2);
+    const oscMix = 0.5 * (s1 + s2);
+
+    const [fStage, fLvl] = this.processEnvelope(
+      this.filterEnvStage, this.filterEnvLevel,
+      params.attack, params.decay, params.sustain, params.release
+    );
+    this.filterEnvStage = fStage; this.filterEnvLevel = fLvl;
+
+    const modCutoff = Math.max(20.0, Math.min(18000.0,
+      params.cutoff + fLvl * params.envAmount + lfoVal * params.lfoDepth
+    ));
+
+    const filtered = this.processLadderFilter(oscMix, modCutoff, params.resonance, params.drive);
+
+    const [aStage, aLvl] = this.processEnvelope(
+      this.envStage, this.envLevel,
+      params.attack, params.decay, params.sustain, params.release
+    );
+    this.envStage = aStage; this.envLevel = aLvl;
+
+    return filtered * aLvl * this.velocity;
+  }
 }
 `;
