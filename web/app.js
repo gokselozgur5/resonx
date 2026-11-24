@@ -33,4 +33,37 @@ window.addEventListener('DOMContentLoaded', async () => {
     async (note, vel) => { await ensureInit(); engine.noteOn(note, vel); },
     (note) => { engine.noteOff(note); }
   );
+
+  const paramInputs = [
+    'cutoff', 'resonance', 'drive', 'envAmount',
+    'attack', 'decay', 'sustain', 'release',
+    'lfoRate', 'lfoDepth', 'delayMix', 'reverbMix', 'detune'
+  ];
+
+  function syncControls(preset) {
+    paramInputs.forEach(key => {
+      const input = document.getElementById(`param-${key}`);
+      const valDisplay = document.getElementById(`val-${key}`);
+      if (input && preset[key] !== undefined) {
+        input.value = preset[key];
+        if (valDisplay) valDisplay.textContent = preset[key];
+      }
+    });
+  }
+
+  function bindInputEvents() {
+    paramInputs.forEach(key => {
+      const input = document.getElementById(`param-${key}`);
+      const valDisplay = document.getElementById(`val-${key}`);
+      if (input) {
+        input.addEventListener('input', async (e) => {
+          await ensureInit();
+          const val = parseFloat(e.target.value);
+          if (valDisplay) valDisplay.textContent = val;
+          engine.setParam(key, val);
+        });
+      }
+    });
+  }
+  bindInputEvents();
 });
