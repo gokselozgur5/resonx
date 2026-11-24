@@ -15,14 +15,29 @@ export class ResonxKeyboard {
     this.onNoteOff = onNoteOff;
     this.activeNotes = new Set();
     this.keyElements = new Map();
+    this.octaveOffset = 0; // -2 to +2
     this.build();
     this.bindEvents();
   }
 
+  setOctave(offset) {
+    const clamped = Math.max(-2, Math.min(2, offset));
+    if (clamped === this.octaveOffset) return;
+    this.releaseAll();
+    this.octaveOffset = clamped;
+    this.build();
+  }
+
+  getOctave() {
+    return this.octaveOffset;
+  }
+
   build() {
     this.container.innerHTML = '';
-    const startNote = 48; // C3
-    const endNote = 72;   // C5
+    const baseOct = 48 + this.octaveOffset * 12; // Base C
+    const startNote = baseOct;
+    const endNote = baseOct + 24; // 2 octaves
+    this.keyElements.clear();
     for (let note = startNote; note <= endNote; note++) {
       const isBlack = [1, 3, 6, 8, 10].includes(note % 12);
       const key = document.createElement('div');
@@ -39,10 +54,11 @@ export class ResonxKeyboard {
   layoutBlackKeys() {
     const whiteKeys = Array.from(this.container.querySelectorAll('.white-key'));
     const blackOffsets = { 1: 0, 3: 1, 6: 3, 8: 4, 10: 5 };
-    const octaveBaseWhite = [0, 7]; // C3, C4
+    const octaveBaseWhite = [0, 7]; // Octave 1, Octave 2
+    const baseOct = 48 + this.octaveOffset * 12;
     octaveBaseWhite.forEach((baseIdx, oct) => {
       Object.entries(blackOffsets).forEach(([mod, wOffset]) => {
-        const note = 48 + oct * 12 + parseInt(mod, 10);
+        const note = baseOct + oct * 12 + parseInt(mod, 10);
         const el = this.keyElements.get(note);
         const refWhite = whiteKeys[baseIdx + wOffset];
         if (el && refWhite) {
@@ -99,13 +115,19 @@ export class ResonxKeyboard {
 
     window.addEventListener('keydown', (e) => {
       if (e.repeat || e.target.tagName === 'INPUT') return;
-      const note = KEYBOARD_MAP[e.code];
-      if (note !== undefined) this.triggerNoteOn(note);
+      const baseNote = KEYBOARD_MAP[e.code];
+      if (baseNote !== undefined) {
+        const note = baseNote + this.octaveOffset * 12;
+        this.triggerNoteOn(note);
+      }
     });
 
     window.addEventListener('keyup', (e) => {
-      const note = KEYBOARD_MAP[e.code];
-      if (note !== undefined) this.triggerNoteOff(note);
+      const baseNote = KEYBOARD_MAP[e.code];
+      if (baseNote !== undefined) {
+        const note = baseNote + this.octaveOffset * 12;
+        this.triggerNoteOff(note);
+      }
     });
 
     if (navigator.requestMIDIAccess) {
