@@ -23,3 +23,19 @@ export function encodeWav16(left, right, sampleRate) {
   }
   return new Blob([buf], { type: 'audio/wav' });
 }
+
+// Triggers browser download for a generated audio Blob
+export function downloadWav(blob, filename = 'resonx_recording.wav') {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.style.display = 'none';
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 1000);
+}
+
