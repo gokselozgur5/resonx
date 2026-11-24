@@ -107,4 +107,25 @@ class ResonxVoice {
     return filtered * aLvl * this.velocity;
   }
 }
+
+class ResonxWorkletProcessor extends AudioWorkletProcessor {
+  constructor() {
+    super();
+    this.voices = Array.from({ length: 8 }, () => new ResonxVoice(sampleRate));
+    this.lfoPhase = 0;
+    this.params = {
+      osc1: 'saw', osc2: 'square', detune: 4,
+      cutoff: 400, resonance: 0.6, drive: 1.8, envAmount: 2000,
+      attack: 0.005, decay: 0.15, sustain: 0.4, release: 0.1,
+      lfoRate: 1.5, lfoDepth: 80, delayMix: 0.2, delayTime: 0.25,
+      delayFeedback: 0.35, masterGain: 0.8
+    };
+    this.delayBufferL = new Float32Array(sampleRate * 2);
+    this.delayBufferR = new Float32Array(sampleRate * 2);
+    this.delayWriteIdx = 0;
+
+    this.port.onmessage = (e) => this.handleMessage(e.data);
+  }
+}
+registerProcessor('resonx-worklet-processor', ResonxWorkletProcessor);
 `;
