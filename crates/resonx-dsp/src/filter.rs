@@ -69,3 +69,74 @@ impl MoogLadderFilter {
         clamp_f32(current_in, -2.0, 2.0)
     }
 }
+
+/// Multi-mode State Variable Filter (SVF) outputs.
+#[derive(Debug, Clone, Copy, Default)]
+pub struct SvfOutput {
+    pub lowpass: f32,
+    pub bandpass: f32,
+    pub highpass: f32,
+    pub notch: f32,
+}
+
+/// Zero-delay feedback State Variable Filter (SVF).
+#[derive(Debug, Clone)]
+pub struct StateVariableFilter {
+    sample_rate: f32,
+    cutoff_hz: f32,
+    resonance: f32,
+    ic1eq: f32,
+    ic2eq: f32,
+}
+
+impl StateVariableFilter {
+    /// Creates a new SVF at specified sample rate.
+    pub fn new(sample_rate: f32) -> Self {
+        Self {
+            sample_rate: sample_rate.max(1.0),
+            cutoff_hz: 1000.0,
+            resonance: 0.5,
+            ic1eq: 0.0,
+            ic2eq: 0.0,
+        }
+    }
+
+    /// Sets cutoff frequency in Hertz.
+    pub fn set_cutoff(&mut self, cutoff: f32) {
+        self.cutoff_hz = clamp_f32(cutoff, 10.0, self.sample_rate * 0.49);
+    }
+
+    /// Sets Q/resonance factor (0.0 = critically damped, 1.0 = sharp peak).
+    pub fn set_resonance(&mut self, res: f32) {
+        self.resonance = clamp_f32(res, 0.0, 0.99);
+    }
+
+    /// Resets internal integrator state.
+    pub fn reset(&mut self) {
+        self.ic1eq = 0.0;
+        self.ic2eq = 0.0;
+    }
+
+    /// Processes an input sample and computes LP, BP, HP, and Notch outputs.
+    pub fn process_sample(&mut self, input: f32) -> SvfOutput {
+        let g = fast_tanh(PI * self.cutoff_hz / self.sample_rate);
+        let k = 2.0 * (1.0 - self.resonance);
+        let a1 = 1.0 / (1.0 + g * (g + k));
+        let a2 = g * a1;
+        let a3 = g * a2;
+
+        let v3 = input - self.ic2eq;
+        let v1 = a1 * self.ic1eq + a2 * v3;
+        let v2 = self.ic2eq + a2 * self.ic1eq + a3 * v3;
+
+        self.ic1eq = 2.0 * v1 - self.ic1eq;
+        self.ic2eq = 2.0 * v2 - self.ic2eq;
+
+        SvfOutput {
+            lowpass: v2,
+            bandpass: v1,
+            highpass: input - k * v1 - v2,
+            notch: input - k * v1,
+        }
+    }
+}
