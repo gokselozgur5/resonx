@@ -35,5 +35,37 @@ export class ResonxAudioEngine {
       this.isWorklet = false;
     }
   }
+
+  async resume() {
+    if (this.ctx && this.ctx.state === 'suspended') {
+      await this.ctx.resume();
+    }
+  }
+
+  noteOn(midi, velocity = 0.8) {
+    this.resume();
+    if (this.isWorklet && this.workletNode) {
+      this.workletNode.port.postMessage({ type: 'noteOn', note: midi, velocity });
+    }
+  }
+
+  noteOff(midi) {
+    if (this.isWorklet && this.workletNode) {
+      this.workletNode.port.postMessage({ type: 'noteOff', note: midi });
+    }
+  }
+
+  setParam(name, val) {
+    if (this.isWorklet && this.workletNode) {
+      this.workletNode.port.postMessage({ type: 'param', name, value: val });
+    }
+  }
+
+  applyPreset(preset) {
+    if (this.isWorklet && this.workletNode) {
+      this.workletNode.port.postMessage({ type: 'preset', preset });
+    }
+  }
 }
+
 
