@@ -267,7 +267,11 @@ mod tests {
         let mut right = [0.0; 1000];
         synth.render_stereo(&mut left, &mut right);
 
-        let sum_energy: f32 = left.iter().zip(right.iter()).map(|(l, r)| l * l + r * r).sum();
+        let sum_energy: f32 = left
+            .iter()
+            .zip(right.iter())
+            .map(|(l, r)| l * l + r * r)
+            .sum();
         assert!(sum_energy > 0.01, "Synth must produce audio energy");
         for (l, r) in left.iter().zip(right.iter()) {
             assert!(l.is_finite() && r.is_finite());
