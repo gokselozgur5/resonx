@@ -18,5 +18,22 @@ export class ResonxKeyboard {
     this.build();
     this.bindEvents();
   }
+
+  build() {
+    this.container.innerHTML = '';
+    const startNote = 48; // C3
+    const endNote = 72;   // C5
+    for (let note = startNote; note <= endNote; note++) {
+      const isBlack = [1, 3, 6, 8, 10].includes(note % 12);
+      const key = document.createElement('div');
+      key.className = `key ${isBlack ? 'black-key' : 'white-key'}`;
+      key.dataset.note = note;
+      const noteLabel = `${NOTE_NAMES[note % 12]}${Math.floor(note / 12) - 1}`;
+      key.innerHTML = `<span class="key-label">${noteLabel}</span>`;
+      this.container.appendChild(key);
+      this.keyElements.set(note, key);
+    }
+  }
 }
+
 
