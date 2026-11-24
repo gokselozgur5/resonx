@@ -36,3 +36,16 @@ export const PRESETS = {
     delayFeedback: 0.45, reverbMix: 0.35
   }
 };
+
+// 16-step demo arpeggiator sequence
+export const DEMO_SEQUENCE = [
+  { note: 48, duration: 0.12 }, { note: 0,  duration: 0.06 },
+  { note: 60, duration: 0.12 }, { note: 55, duration: 0.12 },
+  { note: 58, duration: 0.12 }, { note: 0,  duration: 0.06 },
+  { note: 63, duration: 0.12 }, { note: 60, duration: 0.12 },
+  { note: 51, duration: 0.12 }, { note: 0,  duration: 0.06 },
+  { note: 63, duration: 0.12 }, { note: 58, duration: 0.12 },
+  { note: 46, duration: 0.12 }, { note: 0,  duration: 0.06 },
+  { note: 58, duration: 0.12 }, { note: 55, duration: 0.12 }
+];
+
