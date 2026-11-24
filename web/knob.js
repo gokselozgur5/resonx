@@ -17,6 +17,7 @@ export class ResonxKnob {
     this.startAngle = -135; // degrees
     this.endAngle = 135;   // 270 degree rotation sweep
     this.isDragging = false;
+    this.activePointerId = null;
     this.startY = 0;
     this.startVal = 0;
 
@@ -130,16 +131,22 @@ export class ResonxKnob {
   bindEvents() {
     const onPointerDown = (e) => {
       this.isDragging = true;
+      this.activePointerId = e.pointerId;
       this.startY = e.clientY;
       this.startVal = this.value;
       this.dialContainer.classList.add('active');
-      window.addEventListener('pointermove', onPointerMove);
+      if (this.dialContainer.setPointerCapture) {
+        try { this.dialContainer.setPointerCapture(e.pointerId); } catch {}
+      }
+      window.addEventListener('pointermove', onPointerMove, { passive: false });
       window.addEventListener('pointerup', onPointerUp);
+      window.addEventListener('pointercancel', onPointerUp);
       e.preventDefault();
     };
 
     const onPointerMove = (e) => {
       if (!this.isDragging) return;
+      if (this.activePointerId !== null && e.pointerId !== this.activePointerId) return;
       const dy = this.startY - e.clientY;
       const range = this.max - this.min;
       const pixelsForFullRange = e.shiftKey ? 800 : 180; // Shift for fine-tuning!
@@ -147,12 +154,15 @@ export class ResonxKnob {
       this.setValue(this.startVal + deltaVal, true);
     };
 
-    const onPointerUp = () => {
+    const onPointerUp = (e) => {
       if (!this.isDragging) return;
+      if (this.activePointerId !== null && e && e.pointerId !== undefined && e.pointerId !== this.activePointerId) return;
       this.isDragging = false;
+      this.activePointerId = null;
       this.dialContainer.classList.remove('active');
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('pointercancel', onPointerUp);
     };
 
     this.dialContainer.addEventListener('pointerdown', onPointerDown);
