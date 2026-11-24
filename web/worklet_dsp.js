@@ -64,7 +64,7 @@ class ResonxVoice {
     } else if (stage === 3) { // sustain
       level = s;
     } else if (stage === 4) { // release
-      const rate = s / (Math.max(0.001, r) * this.sampleRate);
+      const rate = 1.0 / (Math.max(0.001, r) * this.sampleRate);
       level -= rate;
       if (level <= 0.0001) { level = 0.0; stage = 0; }
     }
