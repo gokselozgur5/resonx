@@ -19,11 +19,11 @@ export class ResonxAudioEngine {
     this.analyser.fftSize = 2048;
     this.analyser.smoothingTimeConstant = 0.85;
 
+    let url = null;
     try {
       const blob = new Blob([workletCode], { type: 'application/javascript' });
-      const url = URL.createObjectURL(blob);
+      url = URL.createObjectURL(blob);
       await this.ctx.audioWorklet.addModule(url);
-      URL.revokeObjectURL(url);
       this.workletNode = new AudioWorkletNode(this.ctx, 'resonx-worklet-processor', {
         outputChannelCount: [2]
       });
@@ -33,6 +33,8 @@ export class ResonxAudioEngine {
     } catch {
       this.analyser.connect(this.ctx.destination);
       this.isWorklet = false;
+    } finally {
+      if (url) URL.revokeObjectURL(url);
     }
   }
 
@@ -46,24 +48,67 @@ export class ResonxAudioEngine {
     this.resume();
     if (this.isWorklet && this.workletNode) {
       this.workletNode.port.postMessage({ type: 'noteOn', note: midi, velocity });
+      return;
     }
+    if (!this.ctx) return;
+    const now = this.ctx.currentTime;
+    if (this.activeNodes.has(midi)) this.noteOff(midi);
+    const osc = this.ctx.createOscillator();
+    const filter = this.ctx.createBiquadFilter();
+    const gain = this.ctx.createGain();
+    const freq = 440 * Math.pow(2, (midi - 69) / 12);
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(freq, now);
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(this.fallbackParams?.cutoff || 600, now);
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.linearRampToValueAtTime(velocity * 0.4, now + 0.01);
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.analyser);
+    osc.start(now);
+    this.activeNodes.set(midi, { osc, filter, gain });
   }
 
   noteOff(midi) {
     if (this.isWorklet && this.workletNode) {
       this.workletNode.port.postMessage({ type: 'noteOff', note: midi });
+      return;
     }
+    const nodes = this.activeNodes.get(midi);
+    if (!nodes || !this.ctx) return;
+    const now = this.ctx.currentTime;
+    nodes.gain.gain.cancelScheduledValues(now);
+    nodes.gain.gain.setValueAtTime(nodes.gain.gain.value, now);
+    nodes.gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.15);
+    nodes.osc.stop(now + 0.16);
+    this.activeNodes.delete(midi);
   }
 
   setParam(name, val) {
     if (this.isWorklet && this.workletNode) {
       this.workletNode.port.postMessage({ type: 'param', name, value: val });
+      return;
+    }
+    if (!this.fallbackParams) this.fallbackParams = {};
+    this.fallbackParams[name] = val;
+    if (name === 'cutoff' && this.ctx) {
+      const now = this.ctx.currentTime;
+      for (const nodes of this.activeNodes.values()) {
+        nodes.filter.frequency.setValueAtTime(val, now);
+      }
     }
   }
 
   applyPreset(preset) {
     if (this.isWorklet && this.workletNode) {
       this.workletNode.port.postMessage({ type: 'preset', preset });
+      return;
+    }
+    if (preset && typeof preset === 'object') {
+      for (const [k, v] of Object.entries(preset)) {
+        this.setParam(k, v);
+      }
     }
   }
 
