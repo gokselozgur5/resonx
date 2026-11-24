@@ -6,3 +6,4 @@ pub mod filter;
 pub mod fx;
 pub mod math;
 pub mod osc;
+pub mod synth;
