@@ -34,6 +34,28 @@ export class ResonxKeyboard {
       this.keyElements.set(note, key);
     }
   }
+
+  setKeyActive(note, active) {
+    const el = this.keyElements.get(note);
+    if (!el) return;
+    if (active) el.classList.add('active');
+    else el.classList.remove('active');
+  }
+
+  triggerNoteOn(note) {
+    if (this.activeNotes.has(note)) return;
+    this.activeNotes.add(note);
+    this.setKeyActive(note, true);
+    if (this.onNoteOn) this.onNoteOn(note, 0.8);
+  }
+
+  triggerNoteOff(note) {
+    if (!this.activeNotes.has(note)) return;
+    this.activeNotes.delete(note);
+    this.setKeyActive(note, false);
+    if (this.onNoteOff) this.onNoteOff(note);
+  }
 }
+
 
 
