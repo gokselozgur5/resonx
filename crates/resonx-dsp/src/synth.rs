@@ -150,3 +150,88 @@ impl PolySynth {
         }
     }
 }
+
+use crate::osc::Waveform;
+
+/// Factory preset sound banks.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PatchPreset {
+    AnalogBass,
+    BladePad,
+    Acid303,
+    SubPluck,
+}
+
+impl PolySynth {
+    pub fn set_preset(&mut self, preset: PatchPreset) {
+        for v in &mut self.voices {
+            match preset {
+                PatchPreset::AnalogBass => {
+                    v.osc1.set_waveform(Waveform::Saw);
+                    v.osc2.set_waveform(Waveform::Square);
+                    v.osc2.set_pulse_width(0.5);
+                    v.base_cutoff = 400.0;
+                    v.filter_env_amount = 2000.0;
+                    v.filter.set_resonance(0.6);
+                    v.filter.set_drive(1.8);
+                    v.amp_env.set_attack(0.005);
+                    v.amp_env.set_decay(0.15);
+                    v.amp_env.set_sustain(0.4);
+                    v.amp_env.set_release(0.1);
+                    v.filter_env.set_attack(0.005);
+                    v.filter_env.set_decay(0.12);
+                    v.filter_env.set_sustain(0.1);
+                    v.filter_env.set_release(0.1);
+                }
+                PatchPreset::BladePad => {
+                    v.osc1.set_waveform(Waveform::Saw);
+                    v.osc2.set_waveform(Waveform::Saw);
+                    v.base_cutoff = 1200.0;
+                    v.filter_env_amount = 800.0;
+                    v.filter.set_resonance(0.3);
+                    v.filter.set_drive(1.1);
+                    v.amp_env.set_attack(0.3);
+                    v.amp_env.set_decay(0.5);
+                    v.amp_env.set_sustain(0.8);
+                    v.amp_env.set_release(0.6);
+                    v.filter_env.set_attack(0.4);
+                    v.filter_env.set_decay(0.4);
+                    v.filter_env.set_sustain(0.6);
+                    v.filter_env.set_release(0.5);
+                }
+                PatchPreset::Acid303 => {
+                    v.osc1.set_waveform(Waveform::Saw);
+                    v.osc2.set_waveform(Waveform::Saw);
+                    v.base_cutoff = 300.0;
+                    v.filter_env_amount = 3500.0;
+                    v.filter.set_resonance(0.9);
+                    v.filter.set_drive(2.2);
+                    v.amp_env.set_attack(0.002);
+                    v.amp_env.set_decay(0.2);
+                    v.amp_env.set_sustain(0.0);
+                    v.amp_env.set_release(0.05);
+                    v.filter_env.set_attack(0.002);
+                    v.filter_env.set_decay(0.18);
+                    v.filter_env.set_sustain(0.0);
+                    v.filter_env.set_release(0.05);
+                }
+                PatchPreset::SubPluck => {
+                    v.osc1.set_waveform(Waveform::Triangle);
+                    v.osc2.set_waveform(Waveform::Sine);
+                    v.base_cutoff = 800.0;
+                    v.filter_env_amount = 1200.0;
+                    v.filter.set_resonance(0.2);
+                    v.filter.set_drive(1.0);
+                    v.amp_env.set_attack(0.001);
+                    v.amp_env.set_decay(0.08);
+                    v.amp_env.set_sustain(0.0);
+                    v.amp_env.set_release(0.08);
+                    v.filter_env.set_attack(0.001);
+                    v.filter_env.set_decay(0.06);
+                    v.filter_env.set_sustain(0.0);
+                    v.filter_env.set_release(0.06);
+                }
+            }
+        }
+    }
+}
