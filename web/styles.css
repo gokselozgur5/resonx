@@ -194,6 +194,27 @@ canvas {
   box-shadow: 0 0 12px var(--accent-cyan);
 }
 
+.black-key {
+  position: absolute;
+  width: 3.5%;
+  height: 60%;
+  background: #1e293b;
+  border: 1px solid #0f172a;
+  z-index: 2;
+  color: #94a3b8;
+}
+
+.black-key.active {
+  background: var(--accent-emerald) !important;
+  box-shadow: 0 0 14px var(--accent-emerald);
+}
+
+.key-label {
+  font-size: 0.65rem;
+  pointer-events: none;
+}
+
+
 
 
 
