@@ -82,8 +82,22 @@ export class ResonxKeyboard {
       const note = KEYBOARD_MAP[e.code];
       if (note !== undefined) this.triggerNoteOff(note);
     });
+
+    if (navigator.requestMIDIAccess) {
+      navigator.requestMIDIAccess().then(access => {
+        for (const input of access.inputs.values()) {
+          input.onmidimessage = (m) => {
+            const [status, note, vel] = m.data;
+            const cmd = status >> 4;
+            if (cmd === 9 && vel > 0) this.triggerNoteOn(note);
+            else if (cmd === 8 || (cmd === 9 && vel === 0)) this.triggerNoteOff(note);
+          };
+        }
+      }).catch(() => {});
+    }
   }
 }
+
 
 
 
