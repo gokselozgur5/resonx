@@ -2,30 +2,25 @@
 
 use crate::envelope::AdsrEnvelope;
 use crate::filter::MoogLadderFilter;
+use crate::fx::{SchroederReverb, StereoPingPongDelay};
 use crate::math::midi_to_hz;
 use crate::osc::Oscillator;
 
-/// Factory preset sound banks.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum PatchPreset {
-    AnalogBass,
-    BladePad,
-    Acid303,
-    SubPluck,
-}
+/// Maximum polyphonic voice count.
+pub const MAX_VOICES: usize = 8;
 
 /// Single monophonic synthesizer voice.
 #[derive(Debug, Clone)]
 pub struct SynthVoice {
-    osc1: Oscillator,
-    osc2: Oscillator,
-    filter: MoogLadderFilter,
-    amp_env: AdsrEnvelope,
-    filter_env: AdsrEnvelope,
-    filter_env_amount: f32,
-    base_cutoff: f32,
-    active_note: u8,
-    age: u64,
+    pub osc1: Oscillator,
+    pub osc2: Oscillator,
+    pub filter: MoogLadderFilter,
+    pub amp_env: AdsrEnvelope,
+    pub filter_env: AdsrEnvelope,
+    pub filter_env_amount: f32,
+    pub base_cutoff: f32,
+    pub active_note: u8,
+    pub age: u64,
 }
 
 impl SynthVoice {
@@ -47,7 +42,7 @@ impl SynthVoice {
         self.active_note = note;
         let freq = midi_to_hz(note as f32);
         self.osc1.set_frequency(freq);
-        self.osc2.set_frequency(freq * 1.002); // Subtle detune
+        self.osc2.set_frequency(freq * 1.002);
         self.osc1.reset_phase();
         self.osc2.reset_phase();
         self.amp_env.set_sustain(velocity.clamp(0.1, 1.0));
@@ -80,5 +75,78 @@ impl SynthVoice {
         let filtered = self.filter.process_sample(raw);
         let amp = self.amp_env.next_sample();
         filtered * amp
+    }
+}
+
+/// 8-Voice polyphonic synthesizer with voice stealing and effects rack.
+#[derive(Debug, Clone)]
+pub struct PolySynth {
+    pub voices: [SynthVoice; MAX_VOICES],
+    pub delay: StereoPingPongDelay,
+    pub reverb: SchroederReverb,
+    pub master_gain: f32,
+}
+
+impl PolySynth {
+    pub fn new(sample_rate: f32) -> Self {
+        let sr = sample_rate.max(1.0);
+        Self {
+            voices: [
+                SynthVoice::new(sr),
+                SynthVoice::new(sr),
+                SynthVoice::new(sr),
+                SynthVoice::new(sr),
+                SynthVoice::new(sr),
+                SynthVoice::new(sr),
+                SynthVoice::new(sr),
+                SynthVoice::new(sr),
+            ],
+            delay: StereoPingPongDelay::new(sr),
+            reverb: SchroederReverb::new(),
+            master_gain: 0.8,
+        }
+    }
+
+    pub fn note_on(&mut self, note: u8, velocity: f32) {
+        for v in &mut self.voices {
+            if !v.is_active() {
+                v.note_on(note, velocity);
+                return;
+            }
+        }
+        let mut oldest_idx = 0;
+        let mut max_age = 0;
+        for (i, v) in self.voices.iter().enumerate() {
+            if v.age >= max_age {
+                max_age = v.age;
+                oldest_idx = i;
+            }
+        }
+        self.voices[oldest_idx].note_on(note, velocity);
+    }
+
+    pub fn note_off(&mut self, note: u8) {
+        for v in &mut self.voices {
+            if v.active_note == note && v.is_active() {
+                v.note_off();
+            }
+        }
+    }
+
+    pub fn render_stereo(&mut self, out_left: &mut [f32], out_right: &mut [f32]) {
+        let frames = out_left.len().min(out_right.len());
+        for i in 0..frames {
+            let mut mixed = 0.0;
+            for v in &mut self.voices {
+                mixed += v.process_sample();
+            }
+            let scaled = mixed * 0.25 * self.master_gain;
+            let (dl, dr) = self.delay.process_sample(scaled, scaled);
+            let rev_l = self.reverb.process_sample(dl);
+            let rev_r = self.reverb.process_sample(dr);
+
+            out_left[i] = rev_l.clamp(-1.0, 1.0);
+            out_right[i] = rev_r.clamp(-1.0, 1.0);
+        }
     }
 }
