@@ -29,7 +29,33 @@
     <div class="canvas-container">
       <canvas id="visualizer-canvas" width="960" height="140"></canvas>
     </div>
+
+    <section class="rack-grid">
+      <div class="rack-module">
+        <h2 class="module-title">Oscillators</h2>
+        <div class="param-row">
+          <div class="param-header"><label for="param-detune">Detune (cents)</label><span id="val-detune">4</span></div>
+          <input type="range" id="param-detune" min="0" max="30" step="1" value="4">
+        </div>
+      </div>
+      <div class="rack-module">
+        <h2 class="module-title">Moog Ladder Filter</h2>
+        <div class="param-row">
+          <div class="param-header"><label for="param-cutoff">Cutoff (Hz)</label><span id="val-cutoff">400</span></div>
+          <input type="range" id="param-cutoff" min="40" max="12000" step="10" value="400">
+        </div>
+        <div class="param-row">
+          <div class="param-header"><label for="param-resonance">Resonance</label><span id="val-resonance">0.6</span></div>
+          <input type="range" id="param-resonance" min="0.0" max="0.95" step="0.02" value="0.6">
+        </div>
+        <div class="param-row">
+          <div class="param-header"><label for="param-drive">Drive</label><span id="val-drive">1.8</span></div>
+          <input type="range" id="param-drive" min="0.5" max="3.0" step="0.1" value="1.8">
+        </div>
+      </div>
+    </section>
   </main>
+
 
 </body>
 </html>
