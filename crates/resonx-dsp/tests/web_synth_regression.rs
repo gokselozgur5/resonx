@@ -66,6 +66,10 @@ fn test_worklet_dsp_has_polyblep_and_filter() {
     assert!(worklet_js.contains("processLadderFilter"));
     assert!(worklet_js.contains("ResonxWorkletProcessor"));
     assert!(worklet_js.contains("registerProcessor"));
+    assert!(
+        worklet_js.contains("const rate = 1.0 / (Math.max(0.001, r) * this.sampleRate);"),
+        "Envelope release rate must use unit scale to prevent stuck voices on zero-sustain patches"
+    );
 
     let presets_js =
         fs::read_to_string(root.join("web/presets.js")).expect("Failed to read presets.js");
