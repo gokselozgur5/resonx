@@ -196,6 +196,36 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_ping_pong_mono_input_alternates_stereo_channels() {
+        let mut delay = StereoPingPongDelay::new(44100.0);
+        delay.set_delay_time(0.001); // ~44 samples
+        delay.set_feedback(0.5);
+        delay.set_wet(1.0);
+
+        // Feed mono input (L = R = 1.0) on sample 0
+        let (out_l0, out_r0) = delay.process_sample(1.0, 1.0);
+        assert_eq!(out_l0, 0.0);
+        assert_eq!(out_r0, 0.0);
+
+        // Advance to first echo: L should carry delayed signal, R should still be zero
+        let mut first_echo_l = 0.0;
+        let mut first_echo_r = 0.0;
+        for _ in 0..44 {
+            let (l, r) = delay.process_sample(0.0, 0.0);
+            if l.abs() > first_echo_l {
+                first_echo_l = l.abs();
+            }
+            if r.abs() > first_echo_r {
+                first_echo_r = r.abs();
+            }
+        }
+        assert!(
+            first_echo_l > 0.5 && first_echo_r < 0.01,
+            "Ping-pong delay must alternate: first echo in L ({first_echo_l}), zero in R ({first_echo_r})"
+        );
+    }
+
+    #[test]
     fn test_ping_pong_decay_and_finite() {
         let mut delay = StereoPingPongDelay::new(44100.0);
         delay.set_delay_time(0.01); // 10ms
