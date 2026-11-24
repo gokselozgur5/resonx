@@ -40,6 +40,7 @@ impl SynthVoice {
 
     pub fn note_on(&mut self, note: u8, velocity: f32) {
         self.active_note = note;
+        self.age = 0;
         let freq = midi_to_hz(note as f32);
         self.osc1.set_frequency(freq);
         self.osc2.set_frequency(freq * 1.002);
@@ -117,7 +118,7 @@ impl PolySynth {
         let mut oldest_idx = 0;
         let mut max_age = 0;
         for (i, v) in self.voices.iter().enumerate() {
-            if v.age >= max_age {
+            if v.age > max_age {
                 max_age = v.age;
                 oldest_idx = i;
             }
