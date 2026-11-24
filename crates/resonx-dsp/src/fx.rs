@@ -61,9 +61,10 @@ impl StereoPingPongDelay {
         let delayed_l = self.buffer_left[read_idx];
         let delayed_r = self.buffer_right[read_idx];
 
-        // Cross feedback for true ping-pong
-        self.buffer_left[self.write_idx] = in_left + delayed_r * self.feedback;
-        self.buffer_right[self.write_idx] = in_right + delayed_l * self.feedback;
+        // Ping-pong cross-feed: mono input sums into left tap; cross-feed L -> R -> L
+        let mono_in = 0.5 * (in_left + in_right);
+        self.buffer_left[self.write_idx] = mono_in + delayed_r * self.feedback;
+        self.buffer_right[self.write_idx] = delayed_l * self.feedback;
 
         self.write_idx = (self.write_idx + 1) % MAX_DELAY_SAMPLES;
 
