@@ -103,3 +103,89 @@ impl AdsrEnvelope {
         self.current_level
     }
 }
+
+use crate::math::{fast_sin, TAU};
+
+/// Low Frequency Oscillator (LFO) for parameter modulation.
+#[derive(Debug, Clone)]
+pub struct Lfo {
+    sample_rate: f32,
+    freq_hz: f32,
+    phase: f32,
+}
+
+impl Lfo {
+    pub fn new(sample_rate: f32) -> Self {
+        Self {
+            sample_rate: sample_rate.max(1.0),
+            freq_hz: 1.0,
+            phase: 0.0,
+        }
+    }
+
+    pub fn set_frequency(&mut self, freq: f32) {
+        self.freq_hz = clamp_f32(freq, 0.01, 50.0);
+    }
+
+    pub fn next_sample(&mut self) -> f32 {
+        let val = fast_sin(self.phase * TAU);
+        let dt = self.freq_hz / self.sample_rate;
+        self.phase += dt;
+        if self.phase >= 1.0 {
+            self.phase -= 1.0;
+        }
+        val
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_adsr_stages_and_return_to_zero() {
+        let mut env = AdsrEnvelope::new(1000.0); // 1ms per sample
+        env.set_attack(0.01); // 10 samples
+        env.set_decay(0.01); // 10 samples
+        env.set_sustain(0.5);
+        env.set_release(0.01); // 10 samples
+
+        assert_eq!(env.stage(), EnvelopeStage::Idle);
+        assert_eq!(env.next_sample(), 0.0);
+
+        env.gate_on();
+        assert_eq!(env.stage(), EnvelopeStage::Attack);
+
+        // Run through attack
+        for _ in 0..10 {
+            env.next_sample();
+        }
+        assert_eq!(env.stage(), EnvelopeStage::Decay);
+
+        // Run through decay
+        for _ in 0..10 {
+            env.next_sample();
+        }
+        assert_eq!(env.stage(), EnvelopeStage::Sustain);
+        assert!((env.next_sample() - 0.5).abs() < 1e-4);
+
+        // Note off -> release
+        env.gate_off();
+        assert_eq!(env.stage(), EnvelopeStage::Release);
+        for _ in 0..12 {
+            env.next_sample();
+        }
+        assert_eq!(env.stage(), EnvelopeStage::Idle);
+        assert_eq!(env.next_sample(), 0.0);
+    }
+
+    #[test]
+    fn test_lfo_bounded() {
+        let mut lfo = Lfo::new(44100.0);
+        lfo.set_frequency(5.0);
+        for _ in 0..1000 {
+            let s = lfo.next_sample();
+            assert!((-1.0..=1.0).contains(&s));
+        }
+    }
+}
