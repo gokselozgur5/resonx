@@ -23,5 +23,25 @@ export class ResonxVisualizer {
   stop() {
     this.running = false;
   }
+
+  draw() {
+    const w = this.canvas.width; const h = this.canvas.height;
+    this.ctx.fillStyle = '#0b0f19';
+    this.ctx.fillRect(0, 0, w, h);
+
+    this.engine.getFrequencyData(this.freqData);
+    const barCount = 48; const barWidth = (w / barCount) - 2;
+    for (let i = 0; i < barCount; i++) {
+      const idx = Math.floor(Math.pow(i / barCount, 1.5) * (this.freqData.length - 1));
+      const val = this.freqData[idx] / 255.0;
+      const barH = val * (h * 0.7);
+      const x = i * (barWidth + 2);
+      this.ctx.fillStyle = i < barCount * 0.6 ? '#10b981' : '#f59e0b';
+      this.ctx.globalAlpha = 0.4 + val * 0.5;
+      this.ctx.fillRect(x, h - barH, barWidth, barH);
+    }
+    this.ctx.globalAlpha = 1.0;
+  }
 }
+
 
