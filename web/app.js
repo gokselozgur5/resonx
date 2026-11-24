@@ -103,4 +103,22 @@ window.addEventListener('DOMContentLoaded', async () => {
     };
     playStep();
   });
+
+  recordBtn.addEventListener('click', async () => {
+    await ensureInit();
+    if (!engine.recording) {
+      engine.startRecording();
+      recordBtn.textContent = 'Stop & Save WAV';
+      recordBtn.classList.add('recording');
+    } else {
+      const { left, right, sampleRate } = engine.stopRecording();
+      recordBtn.textContent = 'Record Audio to WAV';
+      recordBtn.classList.remove('recording');
+      if (left.length > 0) {
+        const wavBlob = encodeWav16(left, right, sampleRate);
+        const activePreset = presetSelect.value || 'preset';
+        downloadWav(wavBlob, `resonx_${activePreset}_${Date.now()}.wav`);
+      }
+    }
+  });
 });
