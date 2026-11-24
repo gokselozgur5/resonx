@@ -268,6 +268,31 @@ mod tests {
     }
 
     #[test]
+    fn test_polysynth_subpluck_decays_near_silence_while_held() {
+        let mut synth = PolySynth::new(44100.0);
+        synth.set_preset(PatchPreset::SubPluck);
+        synth.note_on(40, 0.9);
+
+        // Process samples beyond attack + decay time (e.g. 0.25 seconds = ~11000 samples)
+        let mut left = [0.0; 1000];
+        let mut right = [0.0; 1000];
+        for _ in 0..15 {
+            synth.render_stereo(&mut left, &mut right);
+        }
+
+        // Voice envelope sustain is 0.0, so while held it must decay near silence
+        synth.render_stereo(&mut left, &mut right);
+        let max_amp = left
+            .iter()
+            .chain(right.iter())
+            .fold(0.0_f32, |acc, &s| acc.max(s.abs()));
+        assert!(
+            max_amp < 0.01,
+            "SubPluck must decay near silence while held, got max amplitude {max_amp}"
+        );
+    }
+
+    #[test]
     fn test_polysynth_render_preset() {
         let mut synth = PolySynth::new(44100.0);
         synth.set_preset(PatchPreset::AnalogBass);
