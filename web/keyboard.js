@@ -33,6 +33,24 @@ export class ResonxKeyboard {
       this.container.appendChild(key);
       this.keyElements.set(note, key);
     }
+    this.layoutBlackKeys();
+  }
+
+  layoutBlackKeys() {
+    const whiteKeys = Array.from(this.container.querySelectorAll('.white-key'));
+    const blackOffsets = { 1: 0, 3: 1, 6: 3, 8: 4, 10: 5 };
+    const octaveBaseWhite = [0, 7]; // C3, C4
+    octaveBaseWhite.forEach((baseIdx, oct) => {
+      Object.entries(blackOffsets).forEach(([mod, wOffset]) => {
+        const note = 48 + oct * 12 + parseInt(mod, 10);
+        const el = this.keyElements.get(note);
+        const refWhite = whiteKeys[baseIdx + wOffset];
+        if (el && refWhite) {
+          const leftPct = ((baseIdx + wOffset + 0.68) / whiteKeys.length) * 100;
+          el.style.left = `${leftPct}%`;
+        }
+      });
+    });
   }
 
   setKeyActive(note, active) {
