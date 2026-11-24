@@ -94,6 +94,19 @@ fn test_worklet_dsp_has_polyblep_and_filter() {
         "keyboard.js must bind releaseAll to visibilitychange"
     );
 
+    let audio_engine_js =
+        fs::read_to_string(root.join("web/audio_engine.js")).expect("Failed to read audio_engine.js");
+    assert!(
+        audio_engine_js.contains("finally") && audio_engine_js.contains("URL.revokeObjectURL"),
+        "audio_engine.js must revoke blob URL inside finally block"
+    );
+    assert!(
+        audio_engine_js.contains("createOscillator")
+            && audio_engine_js.contains("createBiquadFilter")
+            && audio_engine_js.contains("createGain"),
+        "audio_engine.js must implement fallback polyphonic WebAudio synthesis"
+    );
+
     let wav_js =
         fs::read_to_string(root.join("web/wav_export.js")).expect("Failed to read wav_export.js");
     assert!(wav_js.contains("encodeWav16"));
