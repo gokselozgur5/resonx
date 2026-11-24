@@ -3,94 +3,113 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>resonx | Polyphonic WebAudio Synthesizer</title>
+  <title>RESONX // Industrial DSP Synthesizer & Modular Rack</title>
   <link rel="stylesheet" href="web/styles.css">
 </head>
 <body>
   <main class="synth-container">
     <header class="synth-header">
-      <h1 class="synth-title">RESONX // POLYPHONIC SYNTH</h1>
-      <span id="status-badge" class="badge">Click anywhere to start</span>
+      <div class="brand-section">
+        <h1 class="synth-title">RESONX</h1>
+        <span class="synth-model">MODEL-01 // POLYPHONIC DSP RACK</span>
+      </div>
+      <div class="header-status">
+        <span id="status-badge" class="badge">STANDBY — CLICK TO ENGAGE</span>
+      </div>
     </header>
 
     <section class="controls-bar">
-      <label for="preset-select">Preset:</label>
-      <select id="preset-select">
-        <option value="analog-bass">Analog Bass</option>
-        <option value="blade-pad">Blade Runner Pad</option>
-        <option value="acid-303">Acid 303</option>
-        <option value="sub-pluck">Sub Pluck</option>
-        <option value="fm-bell">FM Bell</option>
-      </select>
-      <button id="demo-btn">Play Demo Arp</button>
-      <button id="record-btn">Record Audio to WAV</button>
+      <div class="preset-selector-group">
+        <label for="preset-select">Preset</label>
+        <select id="preset-select" class="custom-select">
+          <option value="analog-bass">01: Analog Bass (Punchy)</option>
+          <option value="blade-pad">02: Blade Runner (Vangelis)</option>
+          <option value="acid-303">03: Acid 303 (Screamer)</option>
+          <option value="sub-pluck">04: Sub Pluck (Tight)</option>
+          <option value="fm-bell">05: FM Bell (Metallic)</option>
+        </select>
+      </div>
+
+      <div class="action-buttons">
+        <button id="demo-btn" class="mech-btn">
+          <span class="btn-indicator"></span>
+          <span id="demo-text">PLAY DEMO ARP</span>
+        </button>
+        <button id="record-btn" class="mech-btn">
+          <span class="btn-indicator"></span>
+          <span id="record-text">RECORD WAV</span>
+        </button>
+      </div>
     </section>
 
-    <div class="canvas-container">
+    <section class="display-unit">
+      <div class="display-hud">
+        <span>CRT PHOSPHOR OSCILLOSCOPE // 48 kHz</span>
+        <span id="scope-status">60 FPS REAL-TIME FFT</span>
+      </div>
       <canvas id="visualizer-canvas" width="960" height="140"></canvas>
-    </div>
+    </section>
 
     <section class="rack-grid">
+      <!-- MODULE 1: DUAL OSCILLATORS -->
       <div class="rack-module">
-        <h2 class="module-title">Oscillators</h2>
-        <div class="param-row">
-          <div class="param-header"><label for="param-detune">Detune (cents)</label><span id="val-detune">4</span></div>
-          <input type="range" id="param-detune" min="0" max="30" step="1" value="4">
+        <div class="module-header">
+          <h2 class="module-title">OSCILLATORS</h2>
+          <span class="module-tag">MOD-01</span>
+        </div>
+        <div class="knobs-container">
+          <div id="knob-detune"></div>
+          <div id="knob-envAmount"></div>
         </div>
       </div>
+
+      <!-- MODULE 2: MOOG LADDER FILTER -->
       <div class="rack-module">
-        <h2 class="module-title">Moog Ladder Filter</h2>
-        <div class="param-row">
-          <div class="param-header"><label for="param-cutoff">Cutoff (Hz)</label><span id="val-cutoff">400</span></div>
-          <input type="range" id="param-cutoff" min="40" max="12000" step="10" value="400">
+        <div class="module-header">
+          <h2 class="module-title">MOOG 24dB LADDER</h2>
+          <span class="module-tag">VCF-02</span>
         </div>
-        <div class="param-row">
-          <div class="param-header"><label for="param-resonance">Resonance</label><span id="val-resonance">0.6</span></div>
-          <input type="range" id="param-resonance" min="0.0" max="0.95" step="0.02" value="0.6">
-        </div>
-        <div class="param-row">
-          <div class="param-header"><label for="param-drive">Drive</label><span id="val-drive">1.8</span></div>
-          <input type="range" id="param-drive" min="0.5" max="3.0" step="0.1" value="1.8">
+        <div class="knobs-container">
+          <div id="knob-cutoff"></div>
+          <div id="knob-resonance"></div>
+          <div id="knob-drive"></div>
         </div>
       </div>
+
+      <!-- MODULE 3: FAST ADSR ENVELOPE -->
       <div class="rack-module">
-        <h2 class="module-title">ADSR Envelope</h2>
-        <div class="param-row">
-          <div class="param-header"><label for="param-attack">Attack (s)</label><span id="val-attack">0.005</span></div>
-          <input type="range" id="param-attack" min="0.001" max="1.5" step="0.005" value="0.005">
+        <div class="module-header">
+          <h2 class="module-title">ADSR ENVELOPE</h2>
+          <span class="module-tag">EG-03</span>
         </div>
-        <div class="param-row">
-          <div class="param-header"><label for="param-decay">Decay (s)</label><span id="val-decay">0.15</span></div>
-          <input type="range" id="param-decay" min="0.01" max="2.0" step="0.01" value="0.15">
-        </div>
-        <div class="param-row">
-          <div class="param-header"><label for="param-sustain">Sustain</label><span id="val-sustain">0.4</span></div>
-          <input type="range" id="param-sustain" min="0.0" max="1.0" step="0.02" value="0.4">
-        </div>
-        <div class="param-row">
-          <div class="param-header"><label for="param-release">Release (s)</label><span id="val-release">0.1</span></div>
-          <input type="range" id="param-release" min="0.01" max="3.0" step="0.02" value="0.1">
+        <div class="knobs-container">
+          <div id="knob-attack"></div>
+          <div id="knob-decay"></div>
+          <div id="knob-sustain"></div>
+          <div id="knob-release"></div>
         </div>
       </div>
+
+      <!-- MODULE 4: LFO & STEREO EFFECTS -->
       <div class="rack-module">
-        <h2 class="module-title">LFO & Stereo Delay</h2>
-        <div class="param-row">
-          <div class="param-header"><label for="param-lfoRate">LFO Rate (Hz)</label><span id="val-lfoRate">1.5</span></div>
-          <input type="range" id="param-lfoRate" min="0.1" max="15.0" step="0.1" value="1.5">
+        <div class="module-header">
+          <h2 class="module-title">LFO & FX</h2>
+          <span class="module-tag">DSP-04</span>
         </div>
-        <div class="param-row">
-          <div class="param-header"><label for="param-lfoDepth">LFO Depth</label><span id="val-lfoDepth">80</span></div>
-          <input type="range" id="param-lfoDepth" min="0" max="600" step="10" value="80">
-        </div>
-        <div class="param-row">
-          <div class="param-header"><label for="param-delayMix">Delay Wet</label><span id="val-delayMix">0.15</span></div>
-          <input type="range" id="param-delayMix" min="0.0" max="0.8" step="0.02" value="0.15">
+        <div class="knobs-container">
+          <div id="knob-lfoRate"></div>
+          <div id="knob-lfoDepth"></div>
+          <div id="knob-delayMix"></div>
+          <div id="knob-reverbMix"></div>
         </div>
       </div>
     </section>
 
-    <div id="keyboard-container" class="keyboard-container"></div>
+    <section class="keyboard-section">
+      <div id="keyboard-container" class="keyboard-container"></div>
+    </section>
   </main>
+
   <script type="module" src="web/app.js"></script>
 </body>
 </html>
